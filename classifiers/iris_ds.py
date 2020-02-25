@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn import datasets, linear_model, svm, gaussian_process, ensemble
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold, GridSearchCV
-from sklearn.fml import FMLClient as fml
+# from sklearn.fml import FMLClient as fml
 
 # Start Time of the execution of the program
 start_time = time.time()
@@ -17,13 +17,13 @@ Y = iris.target
 x_train,x_test,y_train,y_test = train_test_split(X,Y,test_size=0.2, random_state=123)
 
 models = []
-models.append(('LR', linear_model.LogisticRegression(C=1e5)))
-models.append(('SVC', svm.SVC()))
-models.append(('LSVC',svm.LinearSVC()))
+models.append(('LR', linear_model.LogisticRegression(C=1e5, solver='lbfgs', max_iter=10000, multi_class='auto')))
+models.append(('SVC', svm.SVC(gamma='scale', max_iter=10000)))
+models.append(('LSVC',svm.LinearSVC(max_iter=10000)))
 models.append(('ABC', ensemble.AdaBoostClassifier()))
 models.append(('BC', ensemble.BaggingClassifier()))
 models.append(('GBC', ensemble.GradientBoostingClassifier()))
-models.append(('RFC', ensemble.RandomForestClassifier()))
+models.append(('RFC', ensemble.RandomForestClassifier(n_estimators=10)))
 models.append(('GPC', gaussian_process.GaussianProcessClassifier()))
 
 names = []
@@ -55,10 +55,11 @@ c_values = list(np.arange(1, 10))
 
 param_grid = [
     {'C': c_values, 'penalty': ['l1'], 'solver' : ['liblinear'], 'multi_class' : ['ovr']},
-    {'C': c_values, 'penalty': ['l2'], 'solver' : ['liblinear', 'newton-cg', 'lbfgs'], 'multi_class' : ['ovr']}
+    {'C': c_values, 'penalty': ['l2'], 'solver' : ['liblinear', 'newton-cg', 'lbfgs'], 'multi_class' : ['ovr']},
+    {'C': c_values, 'penalty': ['l2'], 'solver': ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'], 'multi_class' : ['ovr']}
 ]
 
-grid = GridSearchCV(linear_model.LogisticRegression(), param_grid, cv=strat_k_fold, scoring='accuracy', iid=False)
+grid = GridSearchCV(linear_model.LogisticRegression(max_iter=10000), param_grid, cv=strat_k_fold, scoring='accuracy', iid=False)
 grid.fit(X, Y)
 
 
