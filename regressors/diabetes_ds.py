@@ -2,7 +2,7 @@ import time
 import numpy as np
 import pandas as pd
 from sklearn import datasets, linear_model, svm, gaussian_process, ensemble
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split, cross_validate, StratifiedKFold, GridSearchCV
 # from sklearn.fml import FMLClient as fml
 
@@ -10,9 +10,9 @@ from sklearn.model_selection import train_test_split, cross_validate, Stratified
 start_time = time.time()
 
 # import some data to play with
-iris = datasets.load_iris()
-X = iris.data
-Y = iris.target
+ds = datasets.load_diabetes()
+X = ds.data
+Y = ds.target
 
 x_train,x_test,y_train,y_test = train_test_split(X,Y,test_size=0.2, random_state=123)
 
@@ -35,7 +35,7 @@ scores = []
 for name, model in models:
     model.fit(x_train, y_train)
     y_pred = model.predict(x_test)
-    scores.append(mean_squared_error(y_test, y_pred))
+    scores.append(r2_score(y_test, y_pred))
     names.append(name)
 
 tr_split = pd.DataFrame({'Name': names, 'Score': scores})
@@ -91,6 +91,29 @@ print(grid.best_estimator_)
 bagreg_new = ensemble.BaggingRegressor()
 
 initial_score = cross_validate(bagreg_new, X, Y, cv=strat_k_fold, scoring=('r2')).get('test_score').max()
+print("Final accu   racy : {} ".format(initial_score))
+
+print("--- %s seconds --- for %s" % ((time.time() - start_time), model.__class__))
+
+
+# GridSearchCV for GradientBoostingRegressor=1)
+lr = np.arange(start=0.1, stop=1.0, step=0.1)
+estimators = np.arange(start=70, stop=130, step=10)
+max_depth = np.arange(start=1, stop=4, step=1)
+param_grid = [
+     {'loss' : ['ls', 'lad', 'huber', 'quantile'], 'learning_rate': lr, 'n_estimators': estimators, 'max_depth': max_depth}
+]
+
+grid = GridSearchCV(ensemble.GradientBoostingRegressor(), param_grid, cv=strat_k_fold, scoring=('r2'))
+grid.fit(X, Y)
+
+print(grid.best_params_)
+print(grid.best_estimator_)
+
+# GradientBoostingRegressor on the best params
+gbrreg_new = ensemble.GradientBoostingRegressor()
+
+initial_score = cross_validate(gbrreg_new, X, Y, cv=strat_k_fold, scoring=('r2')).get('test_score').max()
 print("Final accu   racy : {} ".format(initial_score))
 
 print("--- %s seconds --- for %s" % ((time.time() - start_time), model.__class__))
