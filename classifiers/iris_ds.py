@@ -26,9 +26,9 @@ models.append(('GBC', ensemble.GradientBoostingClassifier()))
 models.append(('RFC', ensemble.RandomForestClassifier(n_estimators=10)))
 models.append(('GPC', gaussian_process.GaussianProcessClassifier()))
 
+# finding the best model
 names = []
 scores = []
-
 for name, model in models:
     model.fit(x_train, y_train)
     y_pred = model.predict(x_test)
@@ -38,10 +38,10 @@ for name, model in models:
 tr_split = pd.DataFrame({'Name': names, 'Score': scores})
 print(tr_split)
 
-strat_k_fold = StratifiedKFold(n_splits=5, random_state=10)
-
+# k-fold validation
 names = []
 scores = []
+strat_k_fold = StratifiedKFold(n_splits=5, random_state=10)
 
 for name, model in models:
     score = cross_val_score(model, X, Y, cv=strat_k_fold, scoring='accuracy').mean()
@@ -51,8 +51,8 @@ for name, model in models:
 kf_cross_val = pd.DataFrame({'Name': names, 'Score': scores})
 print(kf_cross_val)
 
+# GridSearchCV for LoggisticRegression
 c_values = list(np.arange(1, 10))
-
 param_grid = [
     {'C': c_values, 'penalty': ['l1'], 'solver' : ['liblinear'], 'multi_class' : ['ovr']},
     {'C': c_values, 'penalty': ['l2'], 'solver' : ['liblinear', 'newton-cg', 'lbfgs'], 'multi_class' : ['ovr']},
@@ -62,10 +62,10 @@ param_grid = [
 grid = GridSearchCV(linear_model.LogisticRegression(max_iter=10000), param_grid, cv=strat_k_fold, scoring='accuracy', iid=False)
 grid.fit(X, Y)
 
-
 print(grid.best_params_)
 print(grid.best_estimator_)
 
+# LogisticRegression on the best params
 logreg_new = linear_model.LogisticRegression(C=1, multi_class='ovr', penalty='l2', solver='liblinear')
 
 initial_score = cross_val_score(logreg_new, X, Y, cv=strat_k_fold, scoring='accuracy').mean()
