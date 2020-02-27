@@ -4,15 +4,18 @@ import pandas as pd
 from sklearn import datasets, linear_model, svm, gaussian_process, ensemble, tree
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold, GridSearchCV
-# from sklearn.fml import FMLClient as fml
+from sklearn.fml import FMLClient as fml
 
 # Start Time of the execution of the program
 start_time = time.time()
 
+# init FMLearn
+f = fml()
+
 # import some data to play with
-iris = datasets.load_breast_cancer()
-X = iris.data
-Y = iris.target
+db = datasets.load_breast_cancer()
+X = db.data
+Y = db.target
 
 x_train,x_test,y_train,y_test = train_test_split(X,Y,test_size=0.2, random_state=123)
 
@@ -34,8 +37,11 @@ scores = []
 for name, model in models:
     model.fit(x_train, y_train)
     y_pred = model.predict(x_test)
-    scores.append(accuracy_score(y_test, y_pred))
+    score = accuracy_score(y_test, y_pred)
+    scores.append(score)
     names.append(name)
+    
+    # f.publish(model, "Accuracy", score, str(db.data))
 
 tr_split = pd.DataFrame({'Name': names, 'Score': scores})
 print(tr_split)
@@ -50,11 +56,13 @@ for name, model in models:
     score = cross_val_score(model, X, Y, cv=strat_k_fold, scoring='accuracy').mean()
     names.append(name)
     scores.append(score)
+    
+    # f.publish(model, "Accuracy", score, str(db.data))
 
 kf_cross_val = pd.DataFrame({'Name': names, 'Score': scores})
 print(kf_cross_val)
 
-print("--- %s seconds --- for %s" % ((time.time() - start_time), model.__class__))
+print("--- %s seconds --- for %s" % ((time.time() - start_time), "1"))
 
 # running GridSearchCV for LogisticRegression
 
@@ -70,13 +78,17 @@ grid.fit(X, Y)
 
 print(grid.best_params_)
 print(grid.best_estimator_)
-print("--- %s seconds --- for %s" % ((time.time() - start_time), model.__class__))
+
+print("--- %s seconds --- for %s" % ((time.time() - start_time), "2"))
 
 # LogisticRegression on the best params
 logreg_new = linear_model.LogisticRegression(C=2, multi_class='ovr', penalty='l2', solver='newton-cg', max_iter=10000)
 
 initial_score = cross_val_score(logreg_new, X, Y, cv=strat_k_fold, scoring='accuracy').mean()
 print("Final accu   racy : {} ".format(initial_score))
+
+# send to FMLearn
+f._jprint(f.publish(logreg_new, "Accuracy", initial_score, str(db.data), grid.best_params_))
 
 print("--- %s seconds --- for %s" % ((time.time() - start_time), model.__class__))
 
@@ -103,13 +115,13 @@ print("Final accu   racy : {} ".format(initial_score))
 print(grid.best_params_)
 print(grid.best_estimator_)
 
-print("--- %s seconds --- for %s" % ((time.time() - start_time), model.__class__))
+print("--- %s seconds --- for %s" % ((time.time() - start_time), "3"))
 
-# f = fml()
-# f._jprint(f.publish(model, "Accuracy", acc, str(iris.data)))
+# Send to FMLearn
+f._jprint(f.publish(abc_new, "Accuracy", initial_score, str(db.data), grid.best_params_))
 
-# f.publish(model, "Accuracy", acc, str(iris.data))
+# f.publish(model, "Accuracy", acc, str(db.data))
 
-# f._jprint(f.retrieve_all_metrics(str(iris.data)))
+f._jprint(f.retrieve_all_metrics(str(db.data)))
 
-# f._jprint(f.retrieve_best_metric(str(iris.data), False))
+# f._jprint(f.retrieve_best_metric(str(db.data), False))
