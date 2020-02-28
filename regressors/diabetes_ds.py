@@ -110,6 +110,8 @@ grid.fit(X, Y)
 print(grid.best_params_)
 print(grid.best_estimator_)
 
+print("--- %s seconds --- for %s" % ((time.time() - start_time), model.__class__))
+
 # GradientBoostingRegressor on the best params
 gbrreg_new = ensemble.GradientBoostingRegressor()
 

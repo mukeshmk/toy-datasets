@@ -64,6 +64,7 @@ grid.fit(X, Y)
 
 print(grid.best_params_)
 print(grid.best_estimator_)
+print("--- %s seconds --- for %s" % ((time.time() - start_time), model.__class__))
 
 # LogisticRegression on the best params
 logreg_new = linear_model.LogisticRegression(C=1, multi_class='ovr', penalty='l2', solver='liblinear')

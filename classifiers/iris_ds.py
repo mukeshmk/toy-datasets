@@ -65,13 +65,15 @@ grid.fit(X, Y)
 print(grid.best_params_)
 print(grid.best_estimator_)
 
+print("--- %s seconds --- for %s" % ((time.time() - start_time), "Grid Search on Logistic Regression"))
+
 # LogisticRegression on the best params
 logreg_new = linear_model.LogisticRegression(C=1, multi_class='ovr', penalty='l2', solver='liblinear')
 
 initial_score = cross_val_score(logreg_new, X, Y, cv=strat_k_fold, scoring='accuracy').mean()
 print("Final accu   racy : {} ".format(initial_score))
 
-print("--- %s seconds --- for %s" % ((time.time() - start_time), model.__class__))
+print("--- %s seconds --- for %s" % ((time.time() - start_time), "Best Param Execution on LR"))
 
 # f = fml()
 # f._jprint(f.publish(model, "Accuracy", acc, str(iris.data)))

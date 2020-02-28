@@ -66,13 +66,15 @@ grid.fit(X, Y)
 print(grid.best_params_)
 print(grid.best_estimator_)
 
+print("--- %s seconds --- for %s" % ((time.time() - start_time), "GC for LinearRegression"))
+
 # LinearRegression on the best params
 linreg_new = linear_model.LinearRegression()
 
 initial_score = cross_validate(linreg_new, X, Y, cv=strat_k_fold, scoring=('r2')).get('test_score').mean()
 print("Final accu   racy : {} ".format(initial_score))
 
-print("--- %s seconds --- for %s" % ((time.time() - start_time), model.__class__))
+print("--- %s seconds --- for %s" % ((time.time() - start_time), "Best Params for LinearRegression"))
 
 # GridSearchCV for BaggingRegressor
 estimators = np.arange(start=5, stop=25, step=1)
@@ -88,13 +90,15 @@ grid.fit(X, Y)
 print(grid.best_params_)
 print(grid.best_estimator_)
 
+print("--- %s seconds --- for %s" % ((time.time() - start_time), "GC for BR"))
+
 # BaggingRegressor on the best params
 bagreg_new = ensemble.BaggingRegressor()
 
 initial_score = cross_validate(bagreg_new, X, Y, cv=strat_k_fold, scoring=('r2')).get('test_score').max()
 print("Final accu   racy : {} ".format(initial_score))
 
-print("--- %s seconds --- for %s" % ((time.time() - start_time), model.__class__))
+print("--- %s seconds --- for %s" % ((time.time() - start_time), "Best Params for BR"))
 
 
 # f = fml()
