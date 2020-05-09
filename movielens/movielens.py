@@ -1,7 +1,7 @@
 import pandas as pd
 
-from sklearn.model_selection import train_test_split
-from sklearn import linear_model
+from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold
+from sklearn import linear_model, svm, gaussian_process, ensemble
 from sklearn.metrics import accuracy_score
 from sklearn import preprocessing as pp
 
@@ -37,7 +37,7 @@ y = df[['Ratings']]
 #print(y.head())
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=123)
-
+"""
 print('Training...')
 log_reg = linear_model.LogisticRegression(C=1e5, solver='lbfgs', max_iter=10000, multi_class='auto')
 log_reg.fit(X_train, y_train)
@@ -46,3 +46,44 @@ print('Testing...')
 y_pred = log_reg.predict(X_test)
 
 print(accuracy_score(y_test, y_pred))
+"""
+print('Training Multiple Models...')
+
+models = []
+models.append(('LR', linear_model.LogisticRegression(C=1e5, solver='lbfgs', max_iter=10000, multi_class='auto')))
+#models.append(('SVC', svm.SVC(gamma='scale', max_iter=10000)))
+#models.append(('LSVC',svm.LinearSVC(max_iter=10000)))
+#models.append(('ABC', ensemble.AdaBoostClassifier()))
+#models.append(('BC', ensemble.BaggingClassifier()))
+#models.append(('GBC', ensemble.GradientBoostingClassifier()))
+#models.append(('RFC', ensemble.RandomForestClassifier(n_estimators=10)))
+##models.append(('GPC', gaussian_process.GaussianProcessClassifier()))
+
+# finding the best model
+names = []
+scores = []
+for name, model in models:
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    scores.append(accuracy_score(y_test, y_pred))
+    names.append(name)
+
+tr_split = pd.DataFrame({'Name': names, 'Score': scores})
+print(tr_split)
+
+"""
+# k-fold validation
+names = []
+scores = []
+strat_k_fold = StratifiedKFold(n_splits=5, random_state=10)
+
+print("Cross Validation...")
+for name, model in models:
+    score = cross_val_score(model, X, y, cv=strat_k_fold, scoring='accuracy').mean()
+    names.append(name)
+    scores.append(score)
+
+kf_cross_val = pd.DataFrame({'Name': names, 'Score': scores})
+print(kf_cross_val)
+
+"""
