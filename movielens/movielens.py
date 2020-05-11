@@ -1,7 +1,9 @@
 import pandas as pd
+import numpy as np
 
 from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold
 from sklearn import linear_model, svm, gaussian_process, ensemble
+from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.metrics import accuracy_score
 from sklearn import preprocessing as pp
 
@@ -50,7 +52,8 @@ print(accuracy_score(y_test, y_pred))
 print('Training Multiple Models...')
 
 models = []
-models.append(('LR', linear_model.LogisticRegression(C=1e5, solver='lbfgs', max_iter=10000, multi_class='auto')))
+models.append(('RFR', ensemble.RandomForestRegressor(n_estimators=10)))
+#models.append(('LR', linear_model.LogisticRegression(C=1e5, solver='lbfgs', max_iter=10000, multi_class='auto')))
 #models.append(('SVC', svm.SVC(gamma='scale', max_iter=10000)))
 #models.append(('LSVC',svm.LinearSVC(max_iter=10000)))
 #models.append(('ABC', ensemble.AdaBoostClassifier()))
@@ -63,9 +66,12 @@ models.append(('LR', linear_model.LogisticRegression(C=1e5, solver='lbfgs', max_
 names = []
 scores = []
 for name, model in models:
-    model.fit(X_train, y_train)
+    model.fit(X_train, np.ravel(y_train))
     y_pred = model.predict(X_test)
-    scores.append(accuracy_score(y_test, y_pred))
+    print(np.ravel(y_test))
+    print(y_pred)
+    print(np.sqrt(mean_squared_error(y_test, y_pred)))
+    scores.append(r2_score(y_test, y_pred))
     names.append(name)
 
 tr_split = pd.DataFrame({'Name': names, 'Score': scores})
