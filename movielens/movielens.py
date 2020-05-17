@@ -7,6 +7,11 @@ from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.metrics import accuracy_score
 from sklearn import preprocessing as pp
 
+from sklearn.fml import FMLClient as fml
+
+# init FMLearn
+f = fml(debug=True)
+
 #df_movie=pd.read_csv('data/ml-1m/movies.dat', sep = '::', engine='python')
 #df_movie.columns =['MovieIDs','MovieName','Category']
 #df_movie.dropna(inplace=True)
@@ -39,6 +44,9 @@ y = df[['Ratings']]
 #print(y.head())
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=123)
+
+f.set_dataset(X_train, y_train, X_test, y_test)
+
 """
 print('Training...')
 log_reg = linear_model.LogisticRegression(C=1e5, solver='lbfgs', max_iter=10000, multi_class='auto')
@@ -73,6 +81,7 @@ for name, model in models:
     print(np.sqrt(mean_squared_error(y_test, y_pred)))
     scores.append(r2_score(y_test, y_pred))
     names.append(name)
+    f._jprint(f.publish(model, "RMSE", np.sqrt(mean_squared_error(y_test, y_pred))))
 
 tr_split = pd.DataFrame({'Name': names, 'Score': scores})
 print(tr_split)

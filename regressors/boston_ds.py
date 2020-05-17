@@ -4,10 +4,12 @@ import pandas as pd
 from sklearn import datasets, linear_model, svm, gaussian_process, ensemble
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split, cross_validate, StratifiedKFold, GridSearchCV
-# from sklearn.fml import FMLClient as fml
+from sklearn.fml import FMLClient as fml
 
 # Start Time of the execution of the program
 start_time = time.time()
+
+f = fml(debug=True)
 
 # import some data to play with
 ds = datasets.load_boston()
@@ -15,7 +17,9 @@ X = ds.data
 # TODO small hack to make things work. need to fix this!
 Y = ds.target*10 
 
-x_train,x_test,y_train,y_test = train_test_split(X,Y,test_size=0.2, random_state=123)
+x_train,x_test,y_train,y_test = train_test_split(X,Y,test_size=0.2, random_state=12)
+
+f.set_dataset(x_train, y_train, x_test, y_test)
 
 models = []
 models.append(('LR', linear_model.LinearRegression()))
@@ -38,10 +42,11 @@ for name, model in models:
     y_pred = model.predict(x_test)
     scores.append(r2_score(y_test, y_pred))
     names.append(name)
+    #f._jprint(f.publish(model, "r2 score", r2_score(y_test, y_pred)))
 
 tr_split = pd.DataFrame({'Name': names, 'Score': scores})
 print(tr_split)
-
+"""
 # k-fold validation
 names = []
 scores = []
@@ -65,6 +70,8 @@ grid.fit(X, Y)
 
 print(grid.best_params_)
 print(grid.best_estimator_)
+
+f._jprint(f.publish(linear_model.LinearRegression(), "r2 score", score, grid.best_params_))
 
 print("--- %s seconds --- for %s" % ((time.time() - start_time), "GC for LinearRegression"))
 
@@ -100,12 +107,12 @@ print("Final accu   racy : {} ".format(initial_score))
 
 print("--- %s seconds --- for %s" % ((time.time() - start_time), "Best Params for BR"))
 
-
+"""
 # f = fml()
 # f._jprint(f.publish(model, "Accuracy", acc, str(iris.data)))
 
 # f.publish(model, "Accuracy", acc, str(iris.data))
 
-# f._jprint(f.retrieve_all_metrics(str(iris.data)))
+f._jprint(f.retrieve_all_metrics(str(x_train)))
 
 # f._jprint(f.retrieve_best_metric(str(iris.data), False))

@@ -10,14 +10,16 @@ from sklearn.fml import FMLClient as fml
 start_time = time.time()
 
 # init FMLearn
-f = fml()
+f = fml(debug=True)
 
 # import some data to play with
 db = datasets.load_breast_cancer()
 X = db.data
 Y = db.target
 
-x_train,x_test,y_train,y_test = train_test_split(X,Y,test_size=0.2, random_state=123)
+x_train,x_test,y_train,y_test = train_test_split(X,Y,test_size=0.2, random_state=12)
+
+f.set_dataset(x_train, y_train, x_test, y_test)
 
 models = []
 models.append(('LR', linear_model.LogisticRegression(C=1e5, solver='lbfgs', max_iter=10000, multi_class='auto')))
@@ -40,12 +42,11 @@ for name, model in models:
     score = accuracy_score(y_test, y_pred)
     scores.append(score)
     names.append(name)
-    
-    # f.publish(model, "Accuracy", score, str(db.data))
+    f.publish(model, "Accuracy", score)
 
 tr_split = pd.DataFrame({'Name': names, 'Score': scores})
 print(tr_split)
-
+"""
 # k-fold validation
 
 strat_k_fold = StratifiedKFold(n_splits=5, random_state=10)
@@ -187,7 +188,7 @@ print(grid.best_estimator_)
 
 print("--- %s seconds --- for %s" % ((time.time() - start_time), "GridSearchCV for GradientBoostingClassifier"))
 
-
+"""
 
 
 # Send to FMLearn

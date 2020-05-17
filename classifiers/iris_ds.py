@@ -4,17 +4,21 @@ import pandas as pd
 from sklearn import datasets, linear_model, svm, gaussian_process, ensemble
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold, GridSearchCV
-# from sklearn.fml import FMLClient as fml
+from sklearn.fml import FMLClient as fml
 
 # Start Time of the execution of the program
 start_time = time.time()
+
+f = fml(debug=True)
 
 # import some data to play with
 iris = datasets.load_iris()
 X = iris.data
 Y = iris.target
 
-x_train,x_test,y_train,y_test = train_test_split(X,Y,test_size=0.2, random_state=123)
+x_train,x_test,y_train,y_test = train_test_split(X,Y,test_size=0.2, random_state=12)
+
+f.set_dataset(x_train, y_train, x_test, y_test)
 
 models = []
 models.append(('LR', linear_model.LogisticRegression(C=1e5, solver='lbfgs', max_iter=10000, multi_class='auto')))
@@ -32,12 +36,15 @@ scores = []
 for name, model in models:
     model.fit(x_train, y_train)
     y_pred = model.predict(x_test)
-    scores.append(accuracy_score(y_test, y_pred))
+    score = accuracy_score(y_test, y_pred)
+    scores.append(score)
     names.append(name)
+    f.publish(model, "Accuracy", score)
 
 tr_split = pd.DataFrame({'Name': names, 'Score': scores})
 print(tr_split)
 
+"""
 # k-fold validation
 names = []
 scores = []
@@ -74,7 +81,7 @@ initial_score = cross_val_score(logreg_new, X, Y, cv=strat_k_fold, scoring='accu
 print("Final accu   racy : {} ".format(initial_score))
 
 print("--- %s seconds --- for %s" % ((time.time() - start_time), "Best Param Execution on LR"))
-
+"""
 # f = fml()
 # f._jprint(f.publish(model, "Accuracy", acc, str(iris.data)))
 
