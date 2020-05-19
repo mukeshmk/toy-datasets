@@ -1,9 +1,11 @@
 import os
+import time
 import pandas as pd
+import numpy as np
 from sklearn import linear_model, svm, gaussian_process, ensemble, tree
 from sklearn import preprocessing as pp
 from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold, GridSearchCV
 from sklearn.fml import FMLClient as fml
 
 # One Hot Encoding
@@ -35,6 +37,8 @@ def label_encode_feature(df, feature):
 
     return df, encoder
 
+# Start Time of the execution of the program
+start_time = time.time()
 
 # init FMLearn
 f = fml(debug=True)
@@ -92,3 +96,34 @@ for name, model in models:
 
 tr_split = pd.DataFrame({'Name': names, 'Score': scores})
 print(tr_split)
+
+# k-fold validation
+names = []
+scores = []
+strat_k_fold = StratifiedKFold(n_splits=5, random_state=10)
+
+for name, model in models:
+    score = cross_val_score(model, X, y, cv=strat_k_fold, scoring='accuracy').mean()
+    names.append(name)
+    scores.append(score)
+
+kf_cross_val = pd.DataFrame({'Name': names, 'Score': scores})
+print(kf_cross_val)
+
+print("--- %s seconds --- for %s" % ((time.time() - start_time), "K fold validation on all algos"))
+
+# GridSearcgCV for RFC
+
+n_estimators = list(np.arange(start=10, stop=70, step=5))
+max_depth = list(np.arange(start=3, stop=10, step=1))
+param_grid = [
+    {'n_estimators' : n_estimators, 'max_depth': max_depth}
+]
+
+grid = GridSearchCV(ensemble.RandomForestClassifier(), param_grid, cv=strat_k_fold, scoring='accuracy', iid=False)
+grid.fit(X, y)
+
+print(grid.best_params_)
+print(grid.best_estimator_)
+
+print("--- %s seconds --- for %s" % ((time.time() - start_time), "GridSearchCV for GradientBoostingClassifier"))

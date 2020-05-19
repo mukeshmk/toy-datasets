@@ -1,9 +1,11 @@
 import os
+import time
 import pandas as pd
+import numpy as np
 from sklearn import linear_model, svm, gaussian_process, ensemble, tree
 from sklearn import preprocessing as pp
 from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold, GridSearchCV
 from sklearn.fml import FMLClient as fml
 
 # One Hot Encoding
@@ -35,6 +37,8 @@ def label_encode_feature(df, feature):
 
     return df, encoder
 
+# Start Time of the execution of the program
+start_time = time.time()
 
 # init FMLearn
 f = fml(debug=True)
@@ -100,3 +104,42 @@ for name, model in models:
 
 tr_split = pd.DataFrame({'Name': names, 'Score': scores})
 print(tr_split)
+
+# k-fold validation
+names = []
+scores = []
+strat_k_fold = StratifiedKFold(n_splits=5, random_state=10)
+
+for name, model in models:
+    score = cross_val_score(model, X, y, cv=strat_k_fold, scoring='accuracy').mean()
+    names.append(name)
+    scores.append(score)
+
+kf_cross_val = pd.DataFrame({'Name': names, 'Score': scores})
+print(kf_cross_val)
+
+print("--- %s seconds --- for %s" % ((time.time() - start_time), "K fold validation on all algos"))
+
+# GridSearchCV for LoggisticRegression
+c_values = list(np.arange(1, 10))
+param_grid = [
+    {'C': c_values, 'penalty': ['l1'], 'solver' : ['liblinear'], 'multi_class' : ['ovr']},
+    {'C': c_values, 'penalty': ['l2'], 'solver' : ['liblinear', 'lbfgs'], 'multi_class' : ['ovr']},
+    {'C': c_values, 'penalty': ['l2'], 'solver': ['lbfgs', 'liblinear', 'sag', 'saga'], 'multi_class' : ['ovr']}
+]
+
+grid = GridSearchCV(linear_model.LogisticRegression(max_iter=50000), param_grid, cv=strat_k_fold, scoring='accuracy', iid=False)
+grid.fit(X, y)
+
+print(grid.best_params_)
+print(grid.best_estimator_)
+
+print("--- %s seconds --- for %s" % ((time.time() - start_time), "Grid Search on Logistic Regression"))
+
+# LogisticRegression on the best params
+logreg_new = linear_model.LogisticRegression(C=1, multi_class='ovr', penalty='l2', solver='liblinear')
+
+initial_score = cross_val_score(logreg_new, X, y, cv=strat_k_fold, scoring='accuracy').mean()
+print("Final accu   racy : {} ".format(initial_score))
+
+print("--- %s seconds --- for %s" % ((time.time() - start_time), "Best Param Execution on LR"))
