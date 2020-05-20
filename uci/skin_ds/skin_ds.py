@@ -1,10 +1,15 @@
 import os
+import time
 import pandas as pd
+import numpy as np
 from sklearn import linear_model, svm, gaussian_process, ensemble, tree
 from sklearn import preprocessing as pp
 from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold, GridSearchCV
 from sklearn.fml import FMLClient as fml
+
+# Start Time of the execution of the program
+start_time = time.time()
 
 # init FMLearn
 f = fml(debug=True)
@@ -49,3 +54,39 @@ for name, model in models:
 
 tr_split = pd.DataFrame({'Name': names, 'Score': scores})
 print(tr_split)
+
+# k-fold validation
+
+strat_k_fold = StratifiedKFold(n_splits=5, random_state=10)
+
+names = []
+scores = []
+for name, model in models:
+    score = cross_val_score(model, X, y, cv=strat_k_fold, scoring='accuracy').mean()
+    names.append(name)
+    scores.append(score)
+    
+    # f.publish(model, "Accuracy", score, str(db.data))
+
+kf_cross_val = pd.DataFrame({'Name': names, 'Score': scores})
+print(kf_cross_val)
+
+print("--- %s seconds --- for %s" % ((time.time() - start_time), "Cross-Validation"))
+
+# running GridSearchCV for GradientBoostingClassifier
+
+learning_rate = list(np.arange(start=0.05, stop=1, step=0.05))
+n_estimators = list(np.arange(start=30, stop=100, step=5))
+max_depth = list(np.arange(start=3, stop=10, step=1))
+param_grid = [
+    {'n_estimators' : n_estimators, 'loss' : ['deviance', 'exponential'], 'learning_rate': learning_rate, 'max_depth': max_depth}
+]
+
+grid = GridSearchCV(ensemble.GradientBoostingClassifier(), param_grid, cv=strat_k_fold, scoring='accuracy', iid=False)
+grid.fit(X, y)
+
+print(grid.best_params_)
+print(grid.best_estimator_)
+
+print("--- %s seconds --- for %s" % ((time.time() - start_time), "GridSearchCV for GradientBoostingClassifier"))
+

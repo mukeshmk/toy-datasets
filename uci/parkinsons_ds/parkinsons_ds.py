@@ -15,6 +15,7 @@ df = pd.read_csv(path + "/data/parkinsons_updrs.data", sep=',')
 df.dropna(inplace=True)
 
 print(df.head())
+print(df.shape)
 
 X = df[df.columns.difference(['PPE'])]
 y = df['PPE']

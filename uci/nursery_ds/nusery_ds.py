@@ -114,7 +114,7 @@ print("--- %s seconds --- for %s" % ((time.time() - start_time), "K fold validat
 
 # GridSearcgCV for RFC
 
-n_estimators = list(np.arange(start=10, stop=70, step=5))
+n_estimators = list(np.arange(start=10, stop=100, step=5))
 max_depth = list(np.arange(start=3, stop=10, step=1))
 param_grid = [
     {'n_estimators' : n_estimators, 'max_depth': max_depth}

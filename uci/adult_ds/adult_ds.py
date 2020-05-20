@@ -123,9 +123,7 @@ print("--- %s seconds --- for %s" % ((time.time() - start_time), "K fold validat
 # GridSearchCV for LoggisticRegression
 c_values = list(np.arange(1, 10))
 param_grid = [
-    {'C': c_values, 'penalty': ['l1'], 'solver' : ['liblinear'], 'multi_class' : ['ovr']},
-    {'C': c_values, 'penalty': ['l2'], 'solver' : ['liblinear', 'lbfgs'], 'multi_class' : ['ovr']},
-    {'C': c_values, 'penalty': ['l2'], 'solver': ['lbfgs', 'liblinear', 'sag', 'saga'], 'multi_class' : ['ovr']}
+    {'C': c_values, 'penalty': ['l1', 'l2'], 'solver': ['lbfgs', 'liblinear', 'sag', 'saga'], 'multi_class' : ['ovr']}
 ]
 
 grid = GridSearchCV(linear_model.LogisticRegression(max_iter=50000), param_grid, cv=strat_k_fold, scoring='accuracy', iid=False)
