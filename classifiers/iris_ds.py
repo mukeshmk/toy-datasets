@@ -9,7 +9,7 @@ from sklearn.fml import FMLClient as fml
 # Start Time of the execution of the program
 start_time = time.time()
 
-f = fml(debug=True)
+f = fml(debug=False)
 
 # import some data to play with
 iris = datasets.load_iris()

@@ -4,13 +4,13 @@ import pandas as pd
 from sklearn import datasets, linear_model, svm, gaussian_process, ensemble, tree
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold, GridSearchCV
-from sklearn.fml import FMLClient as fml
+from sklearn.fmlearn import FMLClient as fml
 
 # Start Time of the execution of the program
 start_time = time.time()
 
 # init FMLearn
-f = fml(debug=True)
+f = fml(debug=False)
 
 # import some data to play with
 db = datasets.load_breast_cancer()
@@ -91,7 +91,7 @@ initial_score = cross_val_score(logreg_new, X, Y, cv=strat_k_fold, scoring='accu
 print("Final accu   racy : {} ".format(initial_score))
 
 # send to FMLearn
-f._jprint(f.publish(logreg_new, "Accuracy", initial_score, str(db.data), grid.best_params_))
+f._jprint(f.publish(logreg_new, "Accuracy", initial_score, grid.best_params_))
 
 print("--- %s seconds --- for %s" % ((time.time() - start_time), "Best Params for LR"))
 ''''''
@@ -120,6 +120,8 @@ abc_new = ensemble.AdaBoostClassifier(algorithm='SAMME', base_estimator=None,
                    random_state=None)
 initial_score = cross_val_score(abc_new, X, Y, cv=strat_k_fold, scoring='accuracy').mean()
 print("Final accu   racy : {} ".format(initial_score))
+
+f._jprint(f.publish(abc_new, "Accuracy", initial_score, grid.best_params_))
 
 print("--- %s seconds --- for %s" % ((time.time() - start_time), "Best Params for ABC"))
 '''
@@ -196,6 +198,8 @@ print("--- %s seconds --- for %s" % ((time.time() - start_time), "GridSearchCV f
 
 # f.publish(model, "Accuracy", acc, str(db.data))
 
-# f._jprint(f.retrieve_all_metrics(str(db.data)))
+f._jprint(f.retrieve_all_metrics())
 
 # f._jprint(f.retrieve_best_metric(str(db.data), False))
+
+# f._jprint(f.predict_metric())
